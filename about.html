@@ -69,15 +69,16 @@
     }
 
     /* Dropdown Menu - Glass Morphism */
+    /* Dropdown Menu - Glass Morphism */
     .dropdown-menu {
       position: absolute;
       top: 100%; /* Position below the parent nav-item */
-      left: 50%;
-      transform: translateX(-50%);
+      left: 50%; /* Center the dropdown with respect to the parent */
+      transform: translateX(-50%); /* Adjust to truly center */
       background-color: rgba(0, 0, 0, 0.6); /* Slightly darker for dropdown */
       backdrop-filter: blur(15px); /* More blur for dropdown */
       -webkit-backdrop-filter: blur(15px);
-      min-width: 150px;
+      min-width: 200px; /* Ensure sufficient width, adjust as needed */
       border-radius: 0.5rem;
       border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle light border */
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Consistent shadow */
@@ -86,20 +87,38 @@
       margin-top: 0.5rem;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+      /* Ensure these transitions are present for smooth effect */
+      transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease, transform 0.3s ease;
+      /* Added for mobile dropdown behavior */
+      max-height: 0; /* Hidden by default */
+      overflow: hidden; /* Hide overflow when max-height is 0 */
     }
 
-    .nav-item.dropdown:hover .dropdown-menu {
+    /* Desktop hover behavior */
+    @media (min-width: 769px) {
+      .nav-item.dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+        max-height: 300px; /* Ensure content is visible on hover */
+      }
+    }
+
+    /* Mobile dropdown behavior - show when active class is present */
+    .nav-item.dropdown.active .dropdown-menu {
       opacity: 1;
       visibility: visible;
-      transform: translateX(-50%) translateY(0); /* Remove translateY after hover */
+      transform: translateX(0%) translateY(0);
     }
+
+
 
     .dropdown-menu li a {
       display: block;
       padding: 0.75rem 1rem;
       color: #fff;
       text-decoration: none;
+      white-space: nowrap; /* ADD THIS LINE */
       transition: background-color 0.2s ease;
     }
 
@@ -481,6 +500,8 @@
         padding: 0.75rem 0;
         display: block;
       }
+
+      /* Mobile dropdown menu styles */
       .dropdown-menu {
         position: static;
         transform: none;
@@ -489,10 +510,19 @@
         border-radius: 0;
         background-color: rgba(0, 0, 0, 0.8);
         border: none;
+        opacity: 0;
+        visibility: hidden;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease;
       }
-      .nav-item.dropdown:hover .dropdown-menu {
-        transform: none;
+
+      .nav-item.dropdown.active .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        max-height: 300px; /* Adjust based on content */
       }
+
       .dropdown-menu li a {
         padding-left: 2rem;
       }
@@ -580,11 +610,14 @@
     <li class="nav-item"><a href="about.html">About</a></li>
     <li class="nav-item"><a href="amenities.html">Amenities</a></li>
     <li class="nav-item"><a href="events.html">Events</a></li>
-    <li class="nav-item dropdown">
-      <a href="#">Policy <i class="fas fa-chevron-down text-xs ml-1"></i></a>
+    <li class="nav-item dropdown" id="policyDropdown">
+      <a href="#" id="policyDropdownToggle">Policy <i class="fas fa-chevron-down text-xs ml-1"></i></a>
       <ul class="dropdown-menu">
-        <li><a href="#">SOPs</a></li>
+        <li><a href="#">Security Policies</a></li>
+        <li><a href="#">Housekeeping & Waste</a></li>
+        <li><a href="#">Rule Violation & Penalty</a></li>
         <li><a href="pet.html">Pet Policy</a></li>
+        <li><a href="pet.html">Move-In/Move-Out</a></li>
         <li><a href="#">Downloads</a></li>
       </ul>
     </li>
@@ -682,18 +715,53 @@
 <script>
   const hamburgerMenu = document.getElementById('hamburgerMenu');
   const navLinks = document.getElementById('navLinks');
+  const policyDropdown = document.getElementById('policyDropdown');
+  const policyDropdownToggle = document.getElementById('policyDropdownToggle');
 
+  // Hamburger menu toggle
   hamburgerMenu.addEventListener('click', () => {
     navLinks.classList.toggle('active');
   });
 
-  // Optional: Close mobile menu when a nav link is clicked
+  // Policy dropdown toggle for mobile
+  policyDropdownToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Check if we're in mobile view (nav-links has active class)
+    if (navLinks.classList.contains('active')) {
+      policyDropdown.classList.toggle('active');
+    }
+  });
+
+  // Close mobile menu when a nav link is clicked (except for policy dropdown toggle)
   document.querySelectorAll('.nav-links a').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', (e) => {
+      // Don't close menu if clicking on policy dropdown toggle
+      if (link.id === 'policyDropdownToggle') {
+        return;
+      }
+
       if (navLinks.classList.contains('active')) {
         navLinks.classList.remove('active');
+        // Also close any open dropdowns
+        policyDropdown.classList.remove('active');
       }
     });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!policyDropdown.contains(e.target)) {
+      policyDropdown.classList.remove('active');
+    }
+  });
+
+  // Reset dropdown state when hamburger menu is closed
+  hamburgerMenu.addEventListener('click', () => {
+    if (navLinks.classList.contains('active')) {
+      // Menu is being closed, reset dropdown
+      policyDropdown.classList.remove('active');
+    }
   });
 </script>
 </body>

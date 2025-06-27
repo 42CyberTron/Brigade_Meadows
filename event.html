@@ -71,12 +71,12 @@
         .dropdown-menu {
             position: absolute;
             top: 100%; /* Position below the parent nav-item */
-            left: 50%;
-            transform: translateX(-50%);
+            left: 50%; /* Center the dropdown with respect to the parent */
+            transform: translateX(-50%); /* Adjust to truly center */
             background-color: rgba(0, 0, 0, 0.6); /* Slightly darker for dropdown */
             backdrop-filter: blur(15px); /* More blur for dropdown */
             -webkit-backdrop-filter: blur(15px);
-            min-width: 150px;
+            min-width: 200px; /* Increased width to accommodate longer text */
             border-radius: 0.5rem;
             border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle light border */
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Consistent shadow */
@@ -85,20 +85,37 @@
             margin-top: 0.5rem;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s ease, visibility 0.3s ease, max-height 0.3s ease, transform 0.3s ease;
+            /* Added for mobile dropdown behavior */
+            max-height: 0;
+            overflow: hidden;
         }
 
-        .nav-item.dropdown:hover .dropdown-menu {
+        /* Added desktop-only hover behavior */
+        @media (min-width: 769px) {
+            .nav-item.dropdown:hover .dropdown-menu {
+                opacity: 1;
+                visibility: visible;
+                transform: translateX(-50%) translateY(0);
+                max-height: 300px; /* Adjust based on content */
+            }
+        }
+
+        /* Added mobile dropdown behavior - show when active class is present */
+        .nav-item.dropdown.active .dropdown-menu {
             opacity: 1;
             visibility: visible;
-            transform: translateX(-50%) translateY(0); /* Remove translateY after hover */
+            transform: translateX(-50%) translateY(0);
+            max-height: 300px; /* Adjust based on content */
         }
+
 
         .dropdown-menu li a {
             display: block;
             padding: 0.75rem 1rem;
             color: #fff;
             text-decoration: none;
+            white-space: nowrap; /* Prevent text wrapping within dropdown items */
             transition: background-color 0.2s ease;
         }
 
@@ -584,12 +601,13 @@
                 border-radius: 0;
                 background-color: rgba(0, 0, 0, 0.8); /* Slightly less opaque for sub-menu */
                 border: none; /* Remove border for static dropdown */
+                padding: 0.75rem 0; /* Add top and bottom padding for dropdown */
             }
             .nav-item.dropdown:hover .dropdown-menu {
                 transform: none;
             }
             .dropdown-menu li a {
-                padding-left: 2rem; /* Indent dropdown items */
+                padding: 0.6rem 2.5rem; /* Further indent dropdown items and reduced vertical padding */
             }
             .hamburger-menu {
                 display: block; /* Show hamburger on mobile */
@@ -696,20 +714,23 @@
 </head>
 <body>
 <nav class="navbar">
-    <a href="#" class="navbar-brand">BRIGADE MEADOWS</a>
+    <a href="index.html" class="navbar-brand">BRIGADE MEADOWS</a>
     <div class="hamburger-menu" id="hamburgerMenu">
         <i class="fas fa-bars"></i>
     </div>
     <ul class="nav-links" id="navLinks">
-        <li class="nav-item"><a href="#hero-section">Home</a></li>
+        <li class="nav-item"><a href="index.html">Home</a></li>
         <li class="nav-item"><a href="about.html">About</a></li>
         <li class="nav-item"><a href="amenities.html">Amenities</a></li>
         <li class="nav-item"><a href="events.html">Events</a></li>
-        <li class="nav-item dropdown">
-            <a href="#">Policy <i class="fas fa-chevron-down text-xs ml-1"></i></a>
+        <li class="nav-item dropdown" id="policyDropdown">
+            <a href="#" id="policyDropdownToggle">Policy <i class="fas fa-chevron-down text-xs ml-1"></i></a>
             <ul class="dropdown-menu">
-                <li><a href="#">SOPs</a></li>
+                <li><a href="#">Security Policies</a></li>
+                <li><a href="#">Housekeeping & Waste</a></li>
+                <li><a href="#">Rule Violation & Penalty</a></li>
                 <li><a href="pet.html">Pet Policy</a></li>
+                <li><a href="pet.html">Move-In/Move-Out</a></li>
                 <li><a href="#">Downloads</a></li>
             </ul>
         </li>
@@ -846,7 +867,7 @@
         <div class="footer-section">
             <h4>Quick Links</h4>
             <ul class="footer-list">
-                <li><a href="index.html">Home</a></li>
+                <li><a href="#hero-section">Home</a></li>
                 <li><a href="about.html">About Us</a></li>
                 <li><a href="amenities.html">Amenities</a></li>
                 <li><a href="events.html">Events</a></li>
@@ -878,21 +899,56 @@
     // Hamburger Menu functionality
     const hamburgerMenu = document.getElementById('hamburgerMenu');
     const navLinks = document.getElementById('navLinks');
+    const policyDropdown = document.getElementById('policyDropdown'); // New: Get the policy dropdown li
+    const policyDropdownToggle = document.getElementById('policyDropdownToggle'); // New: Get the policy dropdown toggle link
 
     if (hamburgerMenu && navLinks) {
         hamburgerMenu.addEventListener('click', () => {
             navLinks.classList.toggle('active');
+            // Added: Reset dropdown state when hamburger menu is closed
+            if (!navLinks.classList.contains('active')) {
+                policyDropdown.classList.remove('active');
+            }
         });
     }
 
-    // Optional: Close mobile menu when a nav link is clicked
+    // Added: policy dropdown toggle for mobile
+    if (policyDropdownToggle) {
+        policyDropdownToggle.addEventListener('click', (e) => {
+            // Check if we're in mobile view (nav-links has active class)
+            if (navLinks.classList.contains('active')) {
+                e.preventDefault(); // Prevent default link behavior if in mobile view
+                policyDropdown.classList.toggle('active');
+            }
+        });
+    }
+
+
+    // Updated the existing nav links click handler
     document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
+        link.addEventListener('click', (e) => {
+            // Don't close menu if clicking on policy dropdown toggle
+            if (link.id === 'policyDropdownToggle' && navLinks.classList.contains('active')) {
+                return;
+            }
+
             if (navLinks.classList.contains('active')) {
                 navLinks.classList.remove('active');
+                // Also close any open dropdowns
+                policyDropdown.classList.remove('active');
             }
         });
     });
+
+    // Added: Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        // Check if the click occurred outside the policy dropdown and the hamburger menu/nav links
+        const isClickInsideNavbar = hamburgerMenu.contains(e.target) || navLinks.contains(e.target);
+        if (!isClickInsideNavbar && policyDropdown.classList.contains('active')) {
+            policyDropdown.classList.remove('active');
+        }
+    });
+
 
     // Smart Conf Carousel functionality (Auto-playing)
     const smartConfCarouselInner = document.getElementById('smartConfCarouselInner');
